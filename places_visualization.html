@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parco - Visualización de Estacionamientos</title>
+    <link rel="icon" type="image/png" href="Logo/download.png">
+    <link rel="preload" href="Logo/download.png" as="image">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --border-radius: 12px;
+            --border-radius-lg: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Controls */
+        .controls {
+            background: var(--surface-color);
+            border-radius: var(--border-radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .controls-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 3rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--surface-color);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .filter-select {
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            background: var(--surface-color);
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 200px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            padding: 0.25rem;
+            border: 2px solid var(--border-color);
+        }
+
+
+        .view-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: calc(var(--border-radius) - 2px);
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .view-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .download-btn {
+            background: var(--primary-color);
+            color: white;
+            border: 1px solid var(--primary-color);
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--border-radius);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            height: 32px;
+            white-space: nowrap;
+        }
+
+        .download-btn:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Results */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .results-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .results-count {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+        }
+
+        .sort-select {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--surface-color);
+            cursor: pointer;
+        }
+
+        /* Grid View */
+        .places-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .place-card {
+            background: var(--surface-color);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .place-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .place-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .place-image.loaded {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .place-image.loading {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .place-content {
+            padding: 1.5rem;
+        }
+
+        .place-header {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+        }
+
+        .place-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .place-type {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            z-index: 10;
+            box-shadow: var(--shadow-md);
+            width: fit-content;
+        }
+
+        .place-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stars {
+            color: var(--accent-color);
+        }
+
+        .rating-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .place-address {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .place-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .place-state {
+            background: var(--background-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .place-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: none;
+            background: var(--background-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* List View - Spreadsheet Style */
+        .places-list {
+            display: none;
+        }
+
+        .places-list.active {
+            display: block;
+        }
+
+        .spreadsheet-container {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .spreadsheet-header {
+            display: grid;
+            grid-template-columns: 2fr 200px 1fr 1.5fr 1fr 0.8fr;
+            gap: 0;
+            background: var(--background-color);
+            border-bottom: 2px solid var(--border-color);
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .spreadsheet-header-cell {
+            padding: 0.75rem 1rem;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            background: var(--background-color);
+        }
+
+        .spreadsheet-header-cell:last-child {
+            border-right: none;
+        }
+
+        .spreadsheet-row {
+            display: grid;
+            grid-template-columns: 2fr 200px 1fr 1.5fr 1fr 0.8fr;
+            gap: 0;
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+            cursor: pointer;
+            align-items: center;
+        }
+
+        .spreadsheet-row:last-child {
+            border-bottom: none;
+        }
+
+        .spreadsheet-row:hover {
+            background: var(--background-color);
+        }
+
+        .spreadsheet-cell {
+            padding: 0.75rem 1rem;
+            border-right: 1px solid var(--border-color);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .spreadsheet-cell:last-child {
+            border-right: none;
+        }
+
+        .spreadsheet-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .spreadsheet-type {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        .spreadsheet-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .spreadsheet-rating-number {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.8rem;
+        }
+
+        .spreadsheet-state {
+            background: var(--background-color);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .spreadsheet-address {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .spreadsheet-phone {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            user-select: all;
+            transition: var(--transition);
+        }
+
+        .spreadsheet-phone:hover {
+            color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.1);
+            padding: 0.125rem 0.25rem;
+            border-radius: 4px;
+        }
+
+        .spreadsheet-phone.copied {
+            background: var(--success-color);
+            color: white;
+            padding: 0.125rem 0.25rem;
+            border-radius: 4px;
+            animation: copySuccess 0.6s ease-out;
+        }
+
+        .modal-phone.copied {
+            background: var(--success-color);
+            color: white;
+            animation: copySuccess 0.6s ease-out;
+        }
+
+        .modal-location-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .modal-location-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .modal-location-btn:active {
+            transform: translateY(0);
+        }
+
+        @keyframes copySuccess {
+            0% { 
+                background: var(--success-color);
+                transform: scale(1);
+            }
+            50% { 
+                transform: scale(1.05);
+            }
+            100% { 
+                background: transparent;
+                transform: scale(1);
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1rem 1.5rem;
+            box-shadow: var(--shadow-xl);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 280px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--success-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .toast-message {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .toast-phone {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+            background: var(--background-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            margin-top: 0.25rem;
+            display: inline-block;
+        }
+
+        .spreadsheet-actions {
+            display: flex;
+            gap: 0.3rem;
+            justify-content: center;
+        }
+
+        .spreadsheet-action-btn {
+            padding: 0.3rem;
+            border: none;
+            background: var(--background-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .spreadsheet-action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* File Upload */
+        .file-upload-section {
+            background: var(--surface-color);
+            border-radius: var(--border-radius-lg);
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 2px dashed var(--border-color);
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .file-upload-section:hover {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.02);
+        }
+
+        .upload-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .upload-container h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .upload-container p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .upload-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upload-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .file-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--success-color);
+            color: white;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats {
+                gap: 1rem;
+            }
+
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: auto;
+            }
+
+            .places-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .spreadsheet-header {
+                display: none;
+            }
+
+            .spreadsheet-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+                padding: 0;
+            }
+
+            .spreadsheet-cell {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .spreadsheet-cell::before {
+                content: attr(data-label);
+                font-weight: 600;
+                font-size: 0.75rem;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                min-width: 80px;
+            }
+
+            .spreadsheet-cell:last-child {
+                border-bottom: none;
+            }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--surface-color);
+            border-radius: var(--border-radius-lg);
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .modal-header {
+            padding: 2rem 2rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--background-color);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: var(--border-radius);
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-details {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detail-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            text-align: left;
+        }
+
+        .opening-hours {
+            margin-top: 1rem;
+        }
+
+        .hours-list {
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+
+        .hours-list li {
+            padding: 0.25rem 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .modal-phone {
+            cursor: pointer;
+            user-select: all;
+            transition: var(--transition);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .modal-phone:hover {
+            color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .modal-phone.copied {
+            background: var(--success-color);
+            color: white;
+            animation: copyFeedback 1.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1 id="main-title"><i class="fas fa-parking"></i> Parco</h1>
+            <p>Visualización de Estacionamientos en México</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="total-places">-</span>
+                    <span class="stat-label">Estacionamientos</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="total-states">-</span>
+                    <span class="stat-label">Estados</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Controls -->
+        <div class="controls">
+            <div class="controls-row">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="search-input" placeholder="Buscar estacionamientos...">
+                </div>
+                <select class="filter-select" id="state-filter">
+                    <option value="">Todos los estados</option>
+                </select>
+                <select class="filter-select" id="type-filter">
+                    <option value="">Todos los tipos</option>
+                </select>
+            </div>
+            <div class="controls-row">
+                <div class="view-toggle">
+                    <button class="view-btn active" id="grid-view-btn">
+                        <i class="fas fa-th"></i> Cuadrícula
+                    </button>
+                    <button class="view-btn" id="list-view-btn">
+                        <i class="fas fa-list"></i> Lista
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-header">
+            <div class="results-count" id="results-count">Selecciona un archivo para comenzar</div>
+            <div class="results-actions" id="results-actions">
+                <button class="download-btn" id="download-csv-btn">
+                    <i class="fas fa-download"></i> CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- File Upload -->
+        <div class="file-upload-section" id="file-upload-section">
+            <div class="upload-container">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>Subir archivo de datos</h3>
+                <p>Selecciona el archivo JSON con los datos de estacionamientos</p>
+                <input type="file" id="json-file-input" accept=".json" style="display: none;">
+                <button class="upload-btn" onclick="document.getElementById('json-file-input').click()">
+                    <i class="fas fa-folder-open"></i> Seleccionar archivo
+                </button>
+                <div class="file-info" id="file-info" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="file-name"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Procesando datos...</p>
+        </div>
+
+        <!-- Places Grid -->
+        <div class="places-grid" id="places-grid">
+            <!-- Places will be loaded here -->
+        </div>
+
+        <!-- Places List -->
+        <div class="places-list" id="places-list">
+            <!-- Places will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="place-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Detalles del Estacionamiento</h2>
+                <button class="modal-close" id="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script>
+        // Global variables
+        let placesData = [];
+        let filteredPlaces = [];
+        let currentView = 'grid';
+
+        // DOM elements
+        const searchInput = document.getElementById('search-input');
+        const stateFilter = document.getElementById('state-filter');
+        const typeFilter = document.getElementById('type-filter');
+        const gridViewBtn = document.getElementById('grid-view-btn');
+        const listViewBtn = document.getElementById('list-view-btn');
+        const placesGrid = document.getElementById('places-grid');
+        const placesList = document.getElementById('places-list');
+        const resultsCount = document.getElementById('results-count');
+        const loading = document.getElementById('loading');
+        const modal = document.getElementById('place-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const modalClose = document.getElementById('modal-close');
+        const fileUploadSection = document.getElementById('file-upload-section');
+        const jsonFileInput = document.getElementById('json-file-input');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const downloadCsvBtn = document.getElementById('download-csv-btn');
+        const resultsActions = document.getElementById('results-actions');
+
+        // Initialize the application
+        function init() {
+            // Show file upload section initially
+            fileUploadSection.style.display = 'block';
+            
+            // Hide other sections until data is loaded
+            document.querySelector('.controls').style.display = 'none';
+            document.querySelector('.results-header').style.display = 'none';
+            placesGrid.style.display = 'none';
+            placesList.style.display = 'none';
+            resultsActions.style.display = 'none';
+        }
+
+        // Handle file upload
+        function handleFileUpload(file) {
+            if (!file) return;
+            
+            if (file.type !== 'application/json') {
+                alert('Por favor, selecciona un archivo JSON válido.');
+                return;
+            }
+            
+            loading.style.display = 'block';
+            fileUploadSection.style.display = 'none';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    placesData = JSON.parse(e.target.result);
+                    filteredPlaces = [...placesData];
+                    
+                    // Populate filters
+                    populateFilters();
+                    
+                    // Render places
+                    renderPlaces();
+                    
+                    // Update stats
+                    updateStats();
+                    
+                    // Clear any previous error messages
+                    loading.innerHTML = '';
+                    loading.style.display = 'none';
+                    
+                    // Show all sections
+                    document.querySelector('.controls').style.display = 'block';
+                    document.querySelector('.results-header').style.display = 'flex';
+                    
+                    // Show file info
+                    fileName.textContent = file.name;
+                    fileInfo.style.display = 'flex';
+                    
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                    loading.innerHTML = '<p>Error al procesar el archivo JSON. Por favor, verifica que el archivo sea válido.</p>';
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // Clean state name to show just the state
+        function cleanStateName(stateName) {
+            // Extract just the state name before the parenthesis
+            return stateName.split(' (')[0];
+        }
+
+        // Populate filter dropdowns
+        function populateFilters() {
+            const states = [...new Set(placesData.map(place => cleanStateName(place.state)))].sort();
+            const types = [...new Set(placesData.map(place => place.type))].sort();
+            
+            // Populate state filter
+            states.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                stateFilter.appendChild(option);
+            });
+            
+            // Populate type filter
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            });
+        }
+
+        // Update statistics based on filtered data
+        function updateStats() {
+            // Check if any filters are active
+            const hasActiveFilters = searchInput.value.trim() !== '' || 
+                                   stateFilter.value !== '' || 
+                                   typeFilter.value !== '';
+            
+            // Use filtered data if filters are active, otherwise use full dataset
+            const dataToUse = hasActiveFilters ? filteredPlaces : placesData;
+            const totalPlaces = dataToUse.length;
+            const uniqueStates = new Set(dataToUse.map(place => cleanStateName(place.state)));
+            const totalStates = uniqueStates.size;
+            
+            // Debug: log the states to console
+            console.log('Has active filters:', hasActiveFilters);
+            console.log('Filtered places:', totalPlaces);
+            console.log('Unique states found:', Array.from(uniqueStates).sort());
+            console.log('Total states count:', totalStates);
+            
+            document.getElementById('total-places').textContent = totalPlaces;
+            document.getElementById('total-states').textContent = totalStates;
+        }
+
+        // Filter and search places
+        function filterPlaces() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedState = stateFilter.value;
+            const selectedType = typeFilter.value;
+            
+            filteredPlaces = placesData.filter(place => {
+                const matchesSearch = place.name.toLowerCase().includes(searchTerm) ||
+                                    place.address.toLowerCase().includes(searchTerm) ||
+                                    place.google_name.toLowerCase().includes(searchTerm);
+                
+                const matchesState = !selectedState || cleanStateName(place.state) === selectedState;
+                const matchesType = !selectedType || place.type === selectedType;
+                
+                return matchesSearch && matchesState && matchesType;
+            });
+            
+            renderPlaces();
+            updateResultsCount();
+            updateStats();
+        }
+
+        // Render places based on current view
+        function renderPlaces() {
+            if (currentView === 'grid') {
+                renderGridView();
+            } else {
+                renderListView();
+            }
+        }
+
+        // Render grid view
+        function renderGridView() {
+            placesGrid.innerHTML = '';
+            placesList.classList.remove('active');
+            placesList.style.display = 'none';
+            placesGrid.style.display = 'grid';
+            
+            // Check if any filters are active
+            const hasActiveFilters = searchInput.value.trim() !== '' || 
+                                   stateFilter.value !== '' || 
+                                   typeFilter.value !== '';
+            
+            // Use filtered data if filters are active, otherwise use full dataset
+            const dataToRender = hasActiveFilters ? filteredPlaces : placesData;
+            
+            dataToRender.forEach(place => {
+                const placeCard = createPlaceCard(place);
+                placesGrid.appendChild(placeCard);
+            });
+            
+            // Trigger lazy loading for initially visible images
+            setTimeout(() => {
+                handleLazyLoading();
+            }, 100);
+        }
+
+        // Render list view
+        function renderListView() {
+            placesList.innerHTML = '';
+            placesGrid.style.display = 'none';
+            placesList.classList.add('active');
+            placesList.style.display = 'block';
+            
+            // Create spreadsheet container
+            const spreadsheetContainer = document.createElement('div');
+            spreadsheetContainer.className = 'spreadsheet-container';
+            
+            // Create spreadsheet header
+            const spreadsheetHeader = document.createElement('div');
+            spreadsheetHeader.className = 'spreadsheet-header';
+            spreadsheetHeader.innerHTML = `
+                <div class="spreadsheet-header-cell">Nombre</div>
+                <div class="spreadsheet-header-cell">Tipo</div>
+                <div class="spreadsheet-header-cell">Estado</div>
+                <div class="spreadsheet-header-cell">Dirección</div>
+                <div class="spreadsheet-header-cell">Teléfono</div>
+                <div class="spreadsheet-header-cell">Acciones</div>
+            `;
+            spreadsheetContainer.appendChild(spreadsheetHeader);
+            
+            // Check if any filters are active
+            const hasActiveFilters = searchInput.value.trim() !== '' || 
+                                   stateFilter.value !== '' || 
+                                   typeFilter.value !== '';
+            
+            // Use filtered data if filters are active, otherwise use full dataset
+            const dataToRender = hasActiveFilters ? filteredPlaces : placesData;
+            
+            // Create spreadsheet rows
+            dataToRender.forEach(place => {
+                const row = createSpreadsheetRow(place);
+                spreadsheetContainer.appendChild(row);
+            });
+            
+            placesList.appendChild(spreadsheetContainer);
+        }
+
+        // Create place card for grid view
+        function createPlaceCard(place) {
+            const card = document.createElement('div');
+            card.className = 'place-card';
+            card.onclick = () => showPlaceModal(place);
+            
+            const imageUrl = place.main_photo_url || place.thumbnail_url || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMjAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFkNGVkODtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCNncmFkMSkiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSI4MCIgcj0iMjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjkiLz48cmVjdCB4PSIxODUiIHk9IjY1IiB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHJ4PSI0IiBmaWxsPSIjMjU2M2ViIi8+PHJlY3QgeD0iMTkwIiB5PSI3MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iMiIgZmlsbD0id2hpdGUiLz48dGV4dCB4PSIyMDAiIHk9IjEzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJJbnRlciwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9IjYwMCI+UEFSQ088L3RleHQ+PHRleHQgeD0iMjAwIiB5PSIxNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iSW50ZXIsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIG9wYWNpdHk9IjAuOCI+RXN0YWNpb25hbWllbnRvczwvdGV4dD48L3N2Zz4=';
+            
+            card.innerHTML = `
+                <img data-src="${imageUrl}" alt="${place.name}" class="place-image loading">
+                <span class="place-type">${place.type}</span>
+                <div class="place-content">
+                    <div class="place-header">
+                        <h3 class="place-name">${place.name}</h3>
+                    </div>
+                    <p class="place-address">${place.address}</p>
+                    <div class="place-details">
+                        <span class="place-state">${cleanStateName(place.state)}</span>
+                        <div class="place-actions">
+                            <button class="action-btn" onclick="event.stopPropagation(); showPlaceModal('${place.place_id}')" title="Ver detalles">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn" onclick="event.stopPropagation(); openInMaps('${place.place_id}', '${place.latitude}', '${place.longitude}')" title="Ver en mapa">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Create spreadsheet row for list view
+        function createSpreadsheetRow(place) {
+            const row = document.createElement('div');
+            row.className = 'spreadsheet-row';
+            row.onclick = () => showPlaceModal(place);
+            
+            row.innerHTML = `
+                <div class="spreadsheet-cell" data-label="Nombre">
+                    <div class="spreadsheet-name">${place.name}</div>
+                </div>
+                <div class="spreadsheet-cell" data-label="Tipo">
+                    <span class="spreadsheet-type">${place.type}</span>
+                </div>
+                <div class="spreadsheet-cell" data-label="Estado">
+                    <span class="spreadsheet-state">${cleanStateName(place.state)}</span>
+                </div>
+                <div class="spreadsheet-cell" data-label="Dirección">
+                    <div class="spreadsheet-address">${place.address}</div>
+                </div>
+                <div class="spreadsheet-cell" data-label="Teléfono">
+                    <div class="spreadsheet-phone" onclick="event.stopPropagation(); copyToClipboard('${(place.phone || place.international_phone || 'N/A').replace(/'/g, "\\'")}')">${place.phone || place.international_phone || 'N/A'}</div>
+                </div>
+                <div class="spreadsheet-cell" data-label="Acciones">
+                    <div class="spreadsheet-actions">
+                        <button class="spreadsheet-action-btn" onclick="event.stopPropagation(); showPlaceModal('${place.place_id}')" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="spreadsheet-action-btn" onclick="event.stopPropagation(); openInMaps('${place.place_id}', '${place.latitude}', '${place.longitude}')" title="Ver en mapa">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return row;
+        }
+
+        // Generate star rating HTML
+        function generateStars(rating) {
+            if (!rating) return '<span style="color: #e2e8f0;">★★★★★</span>';
+            
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            
+            let stars = '';
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            
+            return stars;
+        }
+
+        // Show place modal
+        function showPlaceModal(placeId) {
+            const place = typeof placeId === 'string' 
+                ? placesData.find(p => p.place_id === placeId)
+                : placeId;
+            
+            if (!place) return;
+            
+            modalTitle.textContent = place.name;
+            
+            const imageUrl = place.main_photo_url || place.thumbnail_url || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgMzAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQzIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFkNGVkODtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNncmFkMykiLz48Y2lyY2xlIGN4PSIzMDAiIGN5PSIxMjAiIHI9IjQwIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC45Ii8+PHJlY3QgeD0iMjcwIiB5PSI5MCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iOCIgZmlsbD0iIzI1NjNlYiIvPjxyZWN0IHg9IjI4MCIgeT0iMTAwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI0IiBmaWxsPSJ3aGl0ZSIvPjx0ZXh0IHg9IjMwMCIgeT0iMjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkludGVyLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iNjAwIj5QQVJDTzwvdGV4dD48dGV4dCB4PSIzMDAiIHk9IjIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJJbnRlciwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgb3BhY2l0eT0iMC44Ij5Fc3RhY2lvbmFtaWVudG9zPC90ZXh0Pjwvc3ZnPg==';
+            
+            modalBody.innerHTML = `
+                <img src="${imageUrl}" alt="${place.name}" class="modal-image">
+                <div class="modal-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Tipo:</span>
+                        <span class="detail-value">${place.type}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Estado:</span>
+                        <span class="detail-value">${cleanStateName(place.state)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Dirección:</span>
+                        <span class="detail-value">${place.address}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Ubicación:</span>
+                        <span class="detail-value">
+                            <button class="modal-location-btn" onclick="openInMaps('${place.place_id}', '${place.latitude}', '${place.longitude}')">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Ver en Google Maps
+                            </button>
+                        </span>
+                    </div>
+                    ${place.website ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Sitio web:</span>
+                        <span class="detail-value">
+                            <a href="${place.website}" target="_blank" style="color: var(--primary-color); text-decoration: none;">
+                                ${place.website}
+                            </a>
+                        </span>
+                    </div>
+                    ` : ''}
+                    ${place.phone ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Teléfono:</span>
+                        <span class="detail-value">
+                            <span class="modal-phone" onclick="copyToClipboard('${place.phone.replace(/'/g, "\\'")}')">${place.phone}</span>
+                        </span>
+                    </div>
+                    ` : ''}
+                    ${place.opening_hours && place.opening_hours.length > 0 ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Horarios:</span>
+                        <span class="detail-value">
+                            <div class="opening-hours">
+                                <ul class="hours-list">
+                                    ${place.opening_hours.map(hour => `<li>${hour}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </span>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        // Open in maps
+        function openInMaps(placeId, lat, lng) {
+            // Use Place ID for direct business link, fallback to coordinates if no Place ID
+            const url = placeId 
+                ? `https://www.google.com/maps/place/?q=place_id:${placeId}`
+                : `https://www.google.com/maps?q=${lat},${lng}`;
+            window.open(url, '_blank');
+        }
+
+        // Show toast notification
+        function showToast(phoneNumber) {
+            const toastContainer = document.getElementById('toast-container');
+            
+            // Remove any existing toasts
+            const existingToasts = toastContainer.querySelectorAll('.toast');
+            existingToasts.forEach(toast => toast.remove());
+            
+            // Create new toast
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">Teléfono copiado</div>
+                    <div class="toast-message">El número ha sido copiado al portapapeles</div>
+                    <div class="toast-phone">${phoneNumber}</div>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 400);
+            }, 3000);
+        }
+
+        // Copy to clipboard with refined feedback
+        function copyToClipboard(text) {
+            if (text === 'N/A') return;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                // Show refined visual feedback
+                const clickedElement = event.target;
+                clickedElement.classList.add('copied');
+                setTimeout(() => {
+                    clickedElement.classList.remove('copied');
+                }, 600);
+                
+                // Show toast notification
+                showToast(text);
+                
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // Show visual feedback for fallback too
+                const clickedElement = event.target;
+                clickedElement.classList.add('copied');
+                setTimeout(() => {
+                    clickedElement.classList.remove('copied');
+                }, 600);
+                
+                // Show toast notification
+                showToast(text);
+            });
+        }
+
+        // Update results count
+        function updateResultsCount() {
+            // Check if any filters are active
+            const hasActiveFilters = searchInput.value.trim() !== '' || 
+                                   stateFilter.value !== '' || 
+                                   typeFilter.value !== '';
+            
+            // Use filtered data if filters are active, otherwise use full dataset
+            const dataToCount = hasActiveFilters ? filteredPlaces : placesData;
+            const count = dataToCount.length;
+            
+            resultsCount.textContent = `Mostrando ${count} estacionamiento${count !== 1 ? 's' : ''}`;
+        }
+
+        // Reset all filters
+        function resetAllFilters() {
+            // Clear all filter inputs
+            searchInput.value = '';
+            stateFilter.value = '';
+            typeFilter.value = '';
+            
+            // Reset filtered places to empty array (will show full dataset)
+            filteredPlaces = [];
+            
+            // Update display - this will show all places since filteredPlaces is empty
+            renderPlaces();
+            updateResultsCount();
+            updateStats();
+        }
+
+        // Lazy loading functionality
+        function isElementInViewport(element, buffer = 0.2) {
+            const rect = element.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            const bufferHeight = windowHeight * buffer;
+            
+            return (
+                rect.top <= windowHeight + bufferHeight &&
+                rect.bottom >= -bufferHeight
+            );
+        }
+
+        function loadImage(img) {
+            if (img.dataset.src && !img.classList.contains('loaded')) {
+                img.classList.remove('loading');
+                img.src = img.dataset.src;
+                img.onload = () => {
+                    img.classList.add('loaded');
+                };
+                img.onerror = () => {
+                    // Fallback to placeholder if image fails to load
+                    img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMjAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFkNGVkODtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCNncmFkMSkiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSI4MCIgcj0iMjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjkiLz48cmVjdCB4PSIxODUiIHk9IjY1IiB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHJ4PSI0IiBmaWxsPSIjMjU2M2ViIi8+PHJlY3QgeD0iMTkwIiB5PSI3MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iMiIgZmlsbD0id2hpdGUiLz48dGV4dCB4PSIyMDAiIHk9IjEzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJJbnRlciwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9IjYwMCI+UEFSQ088L3RleHQ+PHRleHQgeD0iMjAwIiB5PSIxNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iSW50ZXIsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIG9wYWNpdHk9IjAuOCI+RXN0YWNpb25hbWllbnRvczwvdGV4dD48L3N2Zz4=';
+                    img.classList.add('loaded');
+                };
+            }
+        }
+
+        function handleLazyLoading() {
+            const images = document.querySelectorAll('.place-image[data-src]');
+            images.forEach(img => {
+                if (isElementInViewport(img, 0.2)) {
+                    loadImage(img);
+                }
+            });
+        }
+
+        // Throttled scroll handler for better performance
+        let scrollTimeout;
+        function throttledScrollHandler() {
+            if (scrollTimeout) return;
+            scrollTimeout = setTimeout(() => {
+                handleLazyLoading();
+                scrollTimeout = null;
+            }, 100);
+        }
+
+        // Download CSV function
+        function downloadCSV() {
+            if (filteredPlaces.length === 0) {
+                alert('No hay datos para descargar');
+                return;
+            }
+
+            // CSV headers
+            const headers = [
+                'Nombre',
+                'Tipo',
+                'Estado',
+                'Dirección',
+                'Teléfono',
+                'Sitio Web',
+                'Latitud',
+                'Longitud',
+                'Google Name'
+            ];
+
+            // Convert data to CSV format
+            const csvContent = [
+                headers.join(','),
+                ...filteredPlaces.map(place => [
+                    `"${place.name.replace(/"/g, '""')}"`,
+                    `"${place.type.replace(/"/g, '""')}"`,
+                    `"${cleanStateName(place.state).replace(/"/g, '""')}"`,
+                    `"${place.address.replace(/"/g, '""')}"`,
+                    `"${(place.phone || place.international_phone || '').replace(/"/g, '""')}"`,
+                    `"${(place.website || '').replace(/"/g, '""')}"`,
+                    place.latitude || '',
+                    place.longitude || '',
+                    `"${(place.google_name || '').replace(/"/g, '""')}"`
+                ].join(','))
+            ].join('\n');
+
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `estacionamientos_parco_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', filterPlaces);
+        stateFilter.addEventListener('change', filterPlaces);
+        typeFilter.addEventListener('change', filterPlaces);
+
+        gridViewBtn.addEventListener('click', () => {
+            currentView = 'grid';
+            gridViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
+            resultsActions.style.display = 'none';
+            renderPlaces();
+        });
+
+        listViewBtn.addEventListener('click', () => {
+            currentView = 'list';
+            listViewBtn.classList.add('active');
+            gridViewBtn.classList.remove('active');
+            resultsActions.style.display = 'flex';
+            renderPlaces();
+        });
+
+        modalClose.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+
+        // File upload event listener
+        jsonFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        });
+
+        // CSV download event listener
+        downloadCsvBtn.addEventListener('click', downloadCSV);
+
+        // Scroll event listener for lazy loading
+        window.addEventListener('scroll', throttledScrollHandler);
+        window.addEventListener('resize', throttledScrollHandler);
+
+        // Main title click event listener
+        document.getElementById('main-title').addEventListener('click', resetAllFilters);
+
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>
+
