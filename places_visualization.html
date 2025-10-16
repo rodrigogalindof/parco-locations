@@ -1113,38 +1113,38 @@
         async function loadData() {
             try {
                 // Try to fetch from GitHub repository first (using specific commit to avoid CDN cache)
-                const githubUrl = 'https://raw.githubusercontent.com/RodrigoGalindoF/parco-locations/beea1c4/google_places_results_full.json';
+                const githubUrl = 'https://raw.githubusercontent.com/RodrigoGalindoF/parco-locations/main/google_places_results_with_local_images.json';
                 let response = await fetch(githubUrl);
-                
+
                 // If GitHub fetch fails, try local file (for development)
                 if (!response.ok) {
                     console.log('GitHub fetch failed, trying local file...');
-                    response = await fetch('google_places_results_full.json');
+                    response = await fetch('google_places_results_with_local_images.json');
                 }
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+
                 const data = await response.json();
-                
+
                 placesData = data;
                 filteredPlaces = [...placesData];
-                
+
                 // Populate filters
                 populateFilters();
-                
+
                 // Render places
                 renderPlaces();
-                
+
                 // Update stats
                 updateStats();
-                
+
                 // Hide loading and show all sections
                 loading.style.display = 'none';
                 document.querySelector('.controls').style.display = 'block';
                 document.querySelector('.results-header').style.display = 'flex';
-                
+
             } catch (error) {
                 console.error('Error loading data:', error);
                 loading.innerHTML = `
@@ -1152,7 +1152,7 @@
                     <p>Error al cargar los datos. Verificando conexión a GitHub...</p>
                     <p style="color: #ef4444; font-size: 0.875rem; margin-top: 1rem;">${error.message}</p>
                     <p style="color: #64748b; font-size: 0.8rem; margin-top: 0.5rem;">
-                        Si estás ejecutando localmente, asegúrate de que el archivo 'google_places_results_full.json' esté en la misma carpeta.
+                        Si estás ejecutando localmente, asegúrate de que el archivo 'google_places_results_with_local_images.json' esté en la misma carpeta.
                     </p>
                 `;
             }
@@ -1313,6 +1313,7 @@
             card.className = 'place-card';
             card.onclick = () => showPlaceModal(place);
             
+            // Use local image from GitHub if available, otherwise placeholder
             const imageUrl = place.main_photo_url || place.thumbnail_url || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMjAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFkNGVkODtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCNncmFkMSkiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSI4MCIgcj0iMjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjkiLz48cmVjdCB4PSIxODUiIHk9IjY1IiB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHJ4PSI0IiBmaWxsPSIjMjU2M2ViIi8+PHJlY3QgeD0iMTkwIiB5PSI3MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iMiIgZmlsbD0id2hpdGUiLz48dGV4dCB4PSIyMDAiIHk9IjEzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJJbnRlciwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9IjYwMCI+UEFSQ088L3RleHQ+PHRleHQgeD0iMjAwIiB5PSIxNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iSW50ZXIsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIG9wYWNpdHk9IjAuOCI+RXN0YWNpb25hbWllbnRvczwvdGV4dD48L3N2Zz4=';
             
             card.innerHTML = `
@@ -1409,10 +1410,17 @@
             
             modalTitle.textContent = place.name;
             
+            // Use local image from GitHub if available, otherwise placeholder
             const imageUrl = place.main_photo_url || place.thumbnail_url || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgMzAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQzIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFkNGVkODtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNncmFkMykiLz48Y2lyY2xlIGN4PSIzMDAiIGN5PSIxMjAiIHI9IjQwIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC45Ii8+PHJlY3QgeD0iMjcwIiB5PSI5MCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iOCIgZmlsbD0iIzI1NjNlYiIvPjxyZWN0IHg9IjI4MCIgeT0iMTAwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI0IiBmaWxsPSJ3aGl0ZSIvPjx0ZXh0IHg9IjMwMCIgeT0iMjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkludGVyLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iNjAwIj5QQVJDTzwvdGV4dD48dGV4dCB4PSIzMDAiIHk9IjIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJJbnRlciwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgb3BhY2l0eT0iMC44Ij5Fc3RhY2lvbmFtaWVudG9zPC90ZXh0Pjwvc3ZnPg==';
             
+            // Convert local image path to GitHub URL if needed
+            let modalImageUrl = imageUrl;
+            if (imageUrl.includes('Parking Images/')) {
+                modalImageUrl = `https://raw.githubusercontent.com/RodrigoGalindoF/parco-locations/main/${imageUrl}`;
+            }
+            
             modalBody.innerHTML = `
-                <img src="${imageUrl}" alt="${place.name}" class="modal-image">
+                <img src="${modalImageUrl}" alt="${place.name}" class="modal-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgMzAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQzIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFkNGVkODtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNjAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0idXJsKCNncmFkMykiLz48Y2lyY2xlIGN4PSIzMDAiIGN5PSIxMjAiIHI9IjQwIiBmaWxsPSJ3aGl0ZSIgb3BhY2l0eT0iMC45Ii8+PHJlY3QgeD0iMjcwIiB5PSI5MCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iOCIgZmlsbD0iIzI1NjNlYiIvPjxyZWN0IHg9IjI4MCIgeT0iMTAwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI0IiBmaWxsPSJ3aGl0ZSIvPjx0ZXh0IHg9IjMwMCIgeT0iMjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9IkludGVyLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmb250LXdlaWdodD0iNjAwIj5QQVJDTzwvdGV4dD48dGV4dCB4PSIzMDAiIHk9IjIzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJJbnRlciwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgb3BhY2l0eT0iMC44Ij5Fc3RhY2lvbmFtaWVudG9zPC90ZXh0Pjwvc3ZnPg=='">
                 <div class="modal-details">
                     <div class="detail-item">
                         <span class="detail-label">Tipo:</span>
@@ -1602,15 +1610,34 @@
         function loadImage(img) {
             if (img.dataset.src && !img.classList.contains('loaded')) {
                 img.classList.remove('loading');
-                img.src = img.dataset.src;
-                img.onload = () => {
-                    img.classList.add('loaded');
-                };
-                img.onerror = () => {
-                    // Fallback to placeholder if image fails to load
-                    img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMjAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFkNGVkODtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCNncmFkMSkiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSI4MCIgcj0iMjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjkiLz48cmVjdCB4PSIxODUiIHk9IjY1IiB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHJ4PSI0IiBmaWxsPSIjMjU2M2ViIi8+PHJlY3QgeD0iMTkwIiB5PSI3MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iMiIgZmlsbD0id2hpdGUiLz48dGV4dCB4PSIyMDAiIHk9IjEzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJJbnRlciwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9IjYwMCI+UEFSQ088L3RleHQ+PHRleHQgeD0iMjAwIiB5PSIxNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iSW50ZXIsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIG9wYWNpdHk9IjAuOCI+RXN0YWNpb25hbWllbnRvczwvdGV4dD48L3N2Zz4=';
-                    img.classList.add('loaded');
-                };
+                
+                // Check if the image URL is a local image path (Parking Images/)
+                const isLocalImage = img.dataset.src.includes('Parking Images/');
+                
+                if (isLocalImage) {
+                    // Convert local path to GitHub raw URL
+                    const githubImageUrl = `https://raw.githubusercontent.com/RodrigoGalindoF/parco-locations/main/${img.dataset.src}`;
+                    img.src = githubImageUrl;
+                    img.onload = () => {
+                        img.classList.add('loaded');
+                    };
+                    img.onerror = () => {
+                        // Fallback to placeholder if GitHub image fails to load
+                        img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMjAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFkNGVkODtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCNncmFkMSkiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSI4MCIgcj0iMjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjkiLz48cmVjdCB4PSIxODUiIHk9IjY1IiB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHJ4PSI0IiBmaWxsPSIjMjU2M2ViIi8+PHJlY3QgeD0iMTkwIiB5PSI3MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iMiIgZmlsbD0id2hpdGUiLz48dGV4dCB4PSIyMDAiIHk9IjEzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJJbnRlciwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9IjYwMCI+UEFSQ088L3RleHQ+PHRleHQgeD0iMjAwIiB5PSIxNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iSW50ZXIsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIG9wYWNpdHk9IjAuOCI+RXN0YWNpb25hbWllbnRvczwvdGV4dD48L3N2Zz4=';
+                        img.classList.add('loaded');
+                    };
+                } else {
+                    // Try to load the image normally (for data URLs or other sources)
+                    img.src = img.dataset.src;
+                    img.onload = () => {
+                        img.classList.add('loaded');
+                    };
+                    img.onerror = () => {
+                        // Fallback to placeholder if image fails to load
+                        img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMjAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjU2M2ViO3N0b3Atb3BhY2l0eToxIiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzFkNGVkODtzdG9wLW9wYWNpdHk6MSIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCNncmFkMSkiLz48Y2lyY2xlIGN4PSIyMDAiIGN5PSI4MCIgcj0iMjUiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjkiLz48cmVjdCB4PSIxODUiIHk9IjY1IiB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHJ4PSI0IiBmaWxsPSIjMjU2M2ViIi8+PHJlY3QgeD0iMTkwIiB5PSI3MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iMiIgZmlsbD0id2hpdGUiLz48dGV4dCB4PSIyMDAiIHk9IjEzMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtZmFtaWx5PSJJbnRlciwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgZm9udC13ZWlnaHQ9IjYwMCI+UEFSQ088L3RleHQ+PHRleHQgeD0iMjAwIiB5PSIxNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0iSW50ZXIsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIG9wYWNpdHk9IjAuOCI+RXN0YWNpb25hbWllbnRvczwvdGV4dD48L3N2Zz4=';
+                        img.classList.add('loaded');
+                    };
+                }
             }
         }
 
