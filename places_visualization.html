@@ -1109,13 +1109,23 @@
             loadData();
         }
 
-        // Load data automatically from JSON file
+        // Load data automatically from GitHub repository
         async function loadData() {
             try {
-                const response = await fetch('google_places_results_full.json');
+                // Try to fetch from GitHub repository first
+                const githubUrl = 'https://raw.githubusercontent.com/RodrigoGalindoF/parco-locations/main/google_places_results_full.json';
+                let response = await fetch(githubUrl);
+                
+                // If GitHub fetch fails, try local file (for development)
+                if (!response.ok) {
+                    console.log('GitHub fetch failed, trying local file...');
+                    response = await fetch('google_places_results_full.json');
+                }
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
                 const data = await response.json();
                 
                 placesData = data;
@@ -1139,8 +1149,11 @@
                 console.error('Error loading data:', error);
                 loading.innerHTML = `
                     <div class="loading-spinner"></div>
-                    <p>Error al cargar los datos. Por favor, verifica que el archivo 'google_places_results_full.json' esté disponible.</p>
+                    <p>Error al cargar los datos. Verificando conexión a GitHub...</p>
                     <p style="color: #ef4444; font-size: 0.875rem; margin-top: 1rem;">${error.message}</p>
+                    <p style="color: #64748b; font-size: 0.8rem; margin-top: 0.5rem;">
+                        Si estás ejecutando localmente, asegúrate de que el archivo 'google_places_results_full.json' esté en la misma carpeta.
+                    </p>
                 `;
             }
         }
