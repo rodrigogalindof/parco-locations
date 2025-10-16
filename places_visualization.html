@@ -1112,8 +1112,8 @@
         // Load data automatically from GitHub repository
         async function loadData() {
             try {
-                // Try to fetch from GitHub repository first
-                const githubUrl = 'https://raw.githubusercontent.com/RodrigoGalindoF/parco-locations/main/google_places_results_full.json';
+                // Try to fetch from GitHub repository first (using specific commit to avoid CDN cache)
+                const githubUrl = 'https://raw.githubusercontent.com/RodrigoGalindoF/parco-locations/beea1c4/google_places_results_full.json';
                 let response = await fetch(githubUrl);
                 
                 // If GitHub fetch fails, try local file (for development)
