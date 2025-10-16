@@ -1026,7 +1026,7 @@
 
         <!-- Results -->
         <div class="results-header">
-            <div class="results-count" id="results-count">Selecciona un archivo para comenzar</div>
+            <div class="results-count" id="results-count">Cargando datos...</div>
             <div class="results-actions" id="results-actions">
                 <button class="download-btn" id="download-csv-btn">
                     <i class="fas fa-download"></i> CSV
@@ -1034,24 +1034,6 @@
             </div>
         </div>
 
-        <!-- File Upload -->
-        <div class="file-upload-section" id="file-upload-section">
-            <div class="upload-container">
-                <div class="upload-icon">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                </div>
-                <h3>Subir archivo de datos</h3>
-                <p>Selecciona el archivo JSON con los datos de estacionamientos</p>
-                <input type="file" id="json-file-input" accept=".json" style="display: none;">
-                <button class="upload-btn" onclick="document.getElementById('json-file-input').click()">
-                    <i class="fas fa-folder-open"></i> Seleccionar archivo
-                </button>
-                <div class="file-info" id="file-info" style="display: none;">
-                    <i class="fas fa-check-circle"></i>
-                    <span id="file-name"></span>
-                </div>
-            </div>
-        </div>
 
         <!-- Loading -->
         <div class="loading" id="loading" style="display: none;">
@@ -1108,17 +1090,13 @@
         const modalTitle = document.getElementById('modal-title');
         const modalBody = document.getElementById('modal-body');
         const modalClose = document.getElementById('modal-close');
-        const fileUploadSection = document.getElementById('file-upload-section');
-        const jsonFileInput = document.getElementById('json-file-input');
-        const fileInfo = document.getElementById('file-info');
-        const fileName = document.getElementById('file-name');
         const downloadCsvBtn = document.getElementById('download-csv-btn');
         const resultsActions = document.getElementById('results-actions');
 
         // Initialize the application
         function init() {
-            // Show file upload section initially
-            fileUploadSection.style.display = 'block';
+            // Show loading initially
+            loading.style.display = 'block';
             
             // Hide other sections until data is loaded
             document.querySelector('.controls').style.display = 'none';
@@ -1126,54 +1104,45 @@
             placesGrid.style.display = 'none';
             placesList.style.display = 'none';
             resultsActions.style.display = 'none';
+            
+            // Automatically load the JSON data
+            loadData();
         }
 
-        // Handle file upload
-        function handleFileUpload(file) {
-            if (!file) return;
-            
-            if (file.type !== 'application/json') {
-                alert('Por favor, selecciona un archivo JSON válido.');
-                return;
-            }
-            
-            loading.style.display = 'block';
-            fileUploadSection.style.display = 'none';
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    placesData = JSON.parse(e.target.result);
-                    filteredPlaces = [...placesData];
-                    
-                    // Populate filters
-                    populateFilters();
-                    
-                    // Render places
-                    renderPlaces();
-                    
-                    // Update stats
-                    updateStats();
-                    
-                    // Clear any previous error messages
-                    loading.innerHTML = '';
-                    loading.style.display = 'none';
-                    
-                    // Show all sections
-                    document.querySelector('.controls').style.display = 'block';
-                    document.querySelector('.results-header').style.display = 'flex';
-                    
-                    // Show file info
-                    fileName.textContent = file.name;
-                    fileInfo.style.display = 'flex';
-                    
-                } catch (error) {
-                    console.error('Error parsing JSON:', error);
-                    loading.innerHTML = '<p>Error al procesar el archivo JSON. Por favor, verifica que el archivo sea válido.</p>';
+        // Load data automatically from JSON file
+        async function loadData() {
+            try {
+                const response = await fetch('google_places_results_full.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            };
-            
-            reader.readAsText(file);
+                const data = await response.json();
+                
+                placesData = data;
+                filteredPlaces = [...placesData];
+                
+                // Populate filters
+                populateFilters();
+                
+                // Render places
+                renderPlaces();
+                
+                // Update stats
+                updateStats();
+                
+                // Hide loading and show all sections
+                loading.style.display = 'none';
+                document.querySelector('.controls').style.display = 'block';
+                document.querySelector('.results-header').style.display = 'flex';
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                loading.innerHTML = `
+                    <div class="loading-spinner"></div>
+                    <p>Error al cargar los datos. Por favor, verifica que el archivo 'google_places_results_full.json' esté disponible.</p>
+                    <p style="color: #ef4444; font-size: 0.875rem; margin-top: 1rem;">${error.message}</p>
+                `;
+            }
         }
 
         // Clean state name to show just the state
@@ -1730,13 +1699,6 @@
             }
         });
 
-        // File upload event listener
-        jsonFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                handleFileUpload(file);
-            }
-        });
 
         // CSV download event listener
         downloadCsvBtn.addEventListener('click', downloadCSV);
